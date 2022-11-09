@@ -29,12 +29,12 @@ async function run() {
 
     // GET services
     app.get("/services", async (req, res) => {
-      const service = await servicesCollection.find({}).toArray();
+      const service = await servicesCollection.find({}).sort({time: -1}).toArray();
       res.send(service);
     });
     // GET services only 3 items
     app.get("/servicesItem", async (req, res) => {
-      const service = await servicesCollection.find({}).limit(3).toArray();
+      const service = await servicesCollection.find({}).sort({time: -1}).limit(3).toArray();
       res.send(service);
     });
     // get single service
