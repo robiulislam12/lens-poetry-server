@@ -73,7 +73,7 @@ async function run() {
           postId: req.query.postId,
         };
       }
-      const review = await reviewCollection.find(query).toArray();
+      const review = await reviewCollection.find(query).sort({time: -1}).toArray();
       res.send(review);
     });
 
