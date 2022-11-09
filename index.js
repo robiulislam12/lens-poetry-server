@@ -66,6 +66,12 @@ async function run() {
         query = {
           email : req.query.email,
         };
+      } 
+
+      if(req.query.postId){
+        query = {
+          postId : req.query.postId,
+        };
       }
       const review = await reviewCollection.find(query).toArray();
       res.send(review);
