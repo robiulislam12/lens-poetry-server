@@ -1,6 +1,6 @@
 // External import
 const express = require("express");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const cors = require("cors");
 require('dotenv').config();
 
@@ -31,6 +31,13 @@ async function run(){
     app.get('/servicesItem', async(req, res)=>{
       const service = await servicesCollection.find({}).limit(3).toArray();
       res.send(service);
+    })
+    // get single service
+    app.get('/services/:id', async(req, res)=>{
+      const id = req.params;
+      const query = {_id : ObjectId(id)};
+      const service = await servicesCollection.findOne(query);
+      res.send(service)
     })
     // POST services
     app.post('/services', async(req, res)=>{
