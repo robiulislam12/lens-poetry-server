@@ -64,27 +64,49 @@ async function run() {
 
       if (req.query.email) {
         query = {
-          email : req.query.email,
+          email: req.query.email,
         };
-      } 
+      }
 
-      if(req.query.postId){
+      if (req.query.postId) {
         query = {
-          postId : req.query.postId,
+          postId: req.query.postId,
         };
       }
       const review = await reviewCollection.find(query).toArray();
       res.send(review);
     });
 
+    // Update a review
+    app.put("/review/:id", async (req, res) => {
+      const id = req.params;
+      const filter = { _id: ObjectId(id) };
+      const { ratings, comment } = req.body;
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          ratings,
+          comment,
+        },
+      };
+
+      const updateReview = await reviewCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+
+      res.send(updateReview);
+    });
+
     // delete review
-    app.delete('/review/:id', async(req, res)=>{
+    app.delete("/review/:id", async (req, res) => {
       const id = req.params;
       const query = { _id: ObjectId(id) };
 
       const deleteReview = await reviewCollection.deleteOne(query);
       res.send(deleteReview);
-    })
+    });
   } finally {
     // await client.close();
   }
