@@ -1,8 +1,8 @@
 // External import
 const express = require("express");
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
-require('dotenv').config();
+require("dotenv").config();
 
 // Create a app
 const app = express();
@@ -15,45 +15,76 @@ app.use(express.json());
 // Connect mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_USER_PASSWORD}@cluster1.ftnnc4j.mongodb.net/?retryWrites=true&w=majority`;
 
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
-async function run(){
-  try{
-    const database = client.db('lensPoetryDB');
-    const servicesCollection = database.collection('services');
+async function run() {
+  try {
+    const database = client.db("lensPoetryDB");
+    const servicesCollection = database.collection("services");
+    const reviewCollection = database.collection("reviews");
 
     // GET services
-    app.get('/services', async(req, res)=>{
+    app.get("/services", async (req, res) => {
       const service = await servicesCollection.find({}).toArray();
       res.send(service);
-    })
+    });
     // GET services only 3 items
-    app.get('/servicesItem', async(req, res)=>{
+    app.get("/servicesItem", async (req, res) => {
       const service = await servicesCollection.find({}).limit(3).toArray();
       res.send(service);
-    })
+    });
     // get single service
-    app.get('/services/:id', async(req, res)=>{
+    app.get("/services/:id", async (req, res) => {
       const id = req.params;
-      const query = {_id : ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const service = await servicesCollection.findOne(query);
-      res.send(service)
-    })
+      res.send(service);
+    });
     // POST services
-    app.post('/services', async(req, res)=>{
+    app.post("/services", async (req, res) => {
       const data = req.body;
       const service = await servicesCollection.insertOne(data);
       res.send(service);
+    });
+
+    // Add a review
+    app.post("/review", async (req, res) => {
+      const data = req.body;
+      const review = await reviewCollection.insertOne(data);
+      res.send(review);
+    });
+
+    // get a review
+    app.get("/review", async (req, res) => {
+      let query = {};
+
+      if (req.query.email) {
+        query = {
+          email : req.query.email,
+        };
+      }
+      const review = await reviewCollection.find(query).toArray();
+      res.send(review);
+    });
+
+    // delete review
+    app.delete('/review/:id', async(req, res)=>{
+      const id = req.params;
+      const query = { _id: ObjectId(id) };
+
+      const deleteReview = await reviewCollection.deleteOne(query);
+      res.send(deleteReview);
     })
-
-
-  }
-  finally{
+  } finally {
     // await client.close();
   }
 }
 
-run().catch(err => console.dir(err))
+run().catch((err) => console.dir(err));
 
 // Routes
 app.get("/health", (req, res) => {
