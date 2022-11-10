@@ -51,14 +51,14 @@ async function run() {
       res.send(service);
     });
 
-    // Add a review
+    // POst a review
     app.post("/review", async (req, res) => {
       const data = req.body;
       const review = await reviewCollection.insertOne(data);
       res.send(review);
     });
 
-    // get a review
+    // get all review
     app.get("/review", async (req, res) => {
       let query = {};
 
@@ -77,16 +77,27 @@ async function run() {
       res.send(review);
     });
 
+    // get a review
+    app.get('/review/update/:id', async(req, res)=>{
+      const id = req.params;
+      const query = { _id: ObjectId(id) };
+
+      const review = await reviewCollection.findOne(query);
+      res.send(review);
+    })
+
+
+
     // Update a review
     app.put("/review/:id", async (req, res) => {
       const id = req.params;
       const filter = { _id: ObjectId(id) };
-      const { ratings, comment } = req.body;
+      const { ratings, comment} = req.body;
       const options = { upsert: true };
       const updateDoc = {
         $set: {
           ratings,
-          comment,
+          comment
         },
       };
 
