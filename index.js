@@ -2,6 +2,7 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 // Create a app
@@ -11,6 +12,33 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// get token client side
+app.post('/jwt', (req, res)=>{
+  const user = req.body;
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN, {expiresIn: "1h"});
+  res.send({token})
+})
+
+
+// Verify function with middleware
+function verifyJWT(req, res, next){
+    const header = req.headers.authorization;
+
+    if(!header){
+      return res.status(401).send({message: "Unauthorized User Access"})
+    }
+
+    const token = header.split(' ')[1];
+
+    jwt.verify(token, process.env.ACCESS_TOKEN, function(err, decoded){
+        if(err){
+          return res.status(401).send({message: "Unauthorized User Access"})
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
 
 // Connect mongodb
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_USER_PASSWORD}@cluster1.ftnnc4j.mongodb.net/?retryWrites=true&w=majority`;
@@ -45,21 +73,21 @@ async function run() {
       res.send(service);
     });
     // POST services
-    app.post("/services", async (req, res) => {
+    app.post("/services",verifyJWT, async (req, res) => {
       const data = req.body;
       const service = await servicesCollection.insertOne(data);
       res.send(service);
     });
 
-    // POst a review
-    app.post("/review", async (req, res) => {
+    // POST a review
+    app.post("/review",verifyJWT, async (req, res) => {
       const data = req.body;
       const review = await reviewCollection.insertOne(data);
       res.send(review);
     });
 
     // get all review
-    app.get("/review", async (req, res) => {
+    app.get("/review",verifyJWT, async (req, res) => {
       let query = {};
 
       if (req.query.email) {
@@ -78,7 +106,7 @@ async function run() {
     });
 
     // get a review
-    app.get('/review/update/:id', async(req, res)=>{
+    app.get('/review/update/:id',verifyJWT, async(req, res)=>{
       const id = req.params;
       const query = { _id: ObjectId(id) };
 
@@ -89,7 +117,7 @@ async function run() {
 
 
     // Update a review
-    app.put("/review/:id", async (req, res) => {
+    app.put("/review/:id",verifyJWT, async (req, res) => {
       const id = req.params;
       const filter = { _id: ObjectId(id) };
       const { ratings, comment} = req.body;
@@ -111,7 +139,7 @@ async function run() {
     });
 
     // delete review
-    app.delete("/review/:id", async (req, res) => {
+    app.delete("/review/:id",verifyJWT, async (req, res) => {
       const id = req.params;
       const query = { _id: ObjectId(id) };
 
